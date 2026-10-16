@@ -18,5 +18,5 @@ for ($i = 0; $i -lt $files.Count; $i++) {
     $g.DrawString($files[$i].BaseName, $font, [System.Drawing.Brushes]::Yellow, $x + 4, $y + 4)
     $img.Dispose()
 }
-$sheet.Save((Join-Path (Get-Location) $Out), [System.Drawing.Imaging.ImageFormat]::Jpeg)
+$sheet.Save([System.IO.Path]::Combine((Get-Location).Path, $Out), [System.Drawing.Imaging.ImageFormat]::Jpeg)
 $g.Dispose(); $sheet.Dispose()

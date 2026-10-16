@@ -202,6 +202,14 @@ Uma função chamada `Measure` nunca rodava: `measure` é **apelido** de `Measur
 - **Solução:** `weapon_[a-z0-9_]+`.
 - **Lição:** quando um item "some" de um processo em lote, verifique primeiro se ele chegou a entrar na lista. Expressões regulares escritas olhando só para alguns exemplos costumam deixar casos de fora.
 
+### Duas skins de MP5 saíam idênticas no chão
+
+- **Sintoma:** `navy-blue-mp5` e `olive-drab-mp5` apareciam iguais (e iguais à MP5 original) no chão e na terceira pessoa, mas diferentes na mão.
+- **Investigação:** a skin aplicada em outra MP5 (`rarity-mp5`) aparecia no chão normalmente, então o plugin estava certo. Abrindo os materiais da skin: o `mp5_1.vmt` (primeira pessoa) aponta para a textura da skin, mas o `w_smg_mp5.vmt` (modelo do mundo) aponta para a textura **original** do jogo.
+- **Causa:** o autor dessas 8 skins só pintou a arma em primeira pessoa. No jogo, os outros jogadores também veem a MP5 original.
+- **Solução:** nenhuma no estúdio: a foto mostra a verdade. Vale avisar na loja que essas skins só mudam a visão em primeira pessoa.
+- **Lição:** antes de corrigir o "bug", confirme se o comportamento não é do próprio conteúdo. Uma comparação com um caso que funciona (outra skin da mesma arma) separou rápido as duas hipóteses.
+
 ### Listas passadas com `pwsh -File`
 
 `-Weapons a,b` chega como um texto só. O script separa por vírgula.
