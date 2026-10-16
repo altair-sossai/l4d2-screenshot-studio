@@ -55,6 +55,25 @@ Cada problema segue o formato:
 - **Sintoma:** um kit médico e outros itens do mapa no meio da foto do chão.
 - **Solução:** `RemoveLooseItems`: remove toda entidade `weapon_*`/`upgrade_*` sem dono.
 
+### A escopeta saía fora do quadro no chão
+
+- **Sintoma:** com câmera e zoom fixos, a escopeta (comprida) encostava na borda e ficava torta no quadro, enquanto a Magnum ficava pequena no meio.
+- **Causa:** um único enquadramento para armas de tamanhos muito diferentes, e a origem do modelo (empunhadura) longe do centro da arma.
+- **Solução:** passar as cenas de chão pela mesma **calibração automática** da terceira pessoa (centro e zoom por arma).
+
+### As melee apontavam para a câmera e as fotos de chão saíam iguais
+
+- **Sintoma:** com as rotações das armas de fogo, a katana e a guitarra ficavam "em pé" no quadro, e as fotos de cano para a esquerda e para a direita eram quase idênticas.
+- **Causa:** os modelos de melee têm o comprimento no eixo z; os de armas de fogo, no eixo x. A mesma rotação deixa cada tipo apontando para um lado diferente.
+- **Solução:** uma rotação própria para melee em cada cena de chão (`melee_target_angles`), 90 graus a mais no yaw.
+
+### Partes das melee afundavam no chão
+
+- **Sintoma:** a guitarra aparecia com o braço "entrando" no chão; outras melee também ficavam parcialmente enterradas.
+- **Causa:** o plugin colocava a **origem** do modelo na altura do chão. A origem fica na empunhadura; com a arma deitada ou inclinada, partes ficam abaixo dela.
+- **Solução:** `LowestPoint` gira os 8 cantos da caixa do modelo, acha o mais baixo e levanta a arma exatamente essa distância.
+- **Lição:** "colocar no chão" é sobre o ponto mais baixo do objeto, não sobre a origem dele.
+
 ---
 
 ## Terceira pessoa

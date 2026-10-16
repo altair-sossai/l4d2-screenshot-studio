@@ -40,4 +40,4 @@
 
 ---
 
-Voltar ao [início](../README.md).
+Próximo: [13. O código do plugin](13-codigo-do-plugin.md)

@@ -2,12 +2,14 @@
 
 Estúdio automático de fotos para skins de armas do **Left 4 Dead 2**.
 
-Ele tira, sozinho e sempre do mesmo jeito, quatro fotos de cada skin:
+Ele tira, sozinho e sempre do mesmo jeito, seis fotos de cada skin:
 
 | Foto | O que mostra |
 |---|---|
 | `hand` | Primeira pessoa, segurando a arma (o que o jogador vê na tela) |
-| `ground` | A arma caída no chão, vista de cima |
+| `ground` | A arma deitada no chão, com o cano para a esquerda |
+| `ground2` | A arma deitada no chão, com o cano para a direita, mostrando o outro lado |
+| `ground3` | A arma no chão na diagonal, levemente inclinada, numa posição mais natural |
 | `third` | Um sobrevivente segurando a arma, em close na arma |
 | `third2` | O mesmo sobrevivente, num plano mais aberto |
 
@@ -76,6 +78,8 @@ Os documentos foram escritos para serem lidos em ordem. Cada um parte do que o a
 | 10 | [Diário de problemas](docs/10-problemas-e-solucoes.md) | Todos os problemas reais que apareceram e como cada um foi resolvido |
 | 11 | [Passo a passo completo](docs/11-passo-a-passo.md) | Do zero até as fotos prontas |
 | 12 | [Glossário](docs/12-glossario.md) | Termos usados nos documentos |
+| 13 | [O código do plugin](docs/13-codigo-do-plugin.md) | Cada função do plugin, inteira, explicada linha a linha, com exercícios |
+| 14 | [O código da calibração](docs/14-codigo-da-calibracao.md) | O `calibrate.ps1` e o C# embutido, parte por parte, com exercícios |
 
 ---
 
@@ -115,6 +119,7 @@ Todos são enviados com `.\scripts\send.ps1 <comando>`.
 | `sm_shots_snap <nome>` | Tira um print avulso para `screenshots/skinshots/test/<nome>.jpg` |
 | `sm_shots_frame <pitch> <yaw> <fov>` | Gira a câmera e muda o zoom, sem mover |
 | `sm_shots_turn <yaw>` | Gira o sobrevivente da terceira pessoa |
+| `sm_shots_pose <pitch> <yaw> <roll>` | Gira a arma do chão (para testar posições) |
 | `sm_shots_weapon <0\|1\|noshadow>` | Esconde ou mostra a arma da terceira pessoa, ou desliga a sombra dela |
 | `sm_shots_where` | Escreve no log a posição, os ângulos e o estado do jogador |
 | `sm_shots_goto <x> <y> <z> <pitch> <yaw> <roll>` | Teleporta a câmera |

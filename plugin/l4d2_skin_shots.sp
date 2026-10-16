@@ -41,6 +41,8 @@ enum struct Scene
 	float angles[3];
 	float targetOrigin[3];
 	float targetAngles[3];
+	float meleeAngles[3];
+	bool hasMeleeAngles;
 	bool viewModel;
 	int fov;
 	char type[16];
@@ -72,7 +74,7 @@ public Plugin myinfo =
 	author = "Altair Sossai",
 	description = "Takes the same screenshots of every weapon skin on a local listen server",
 	version = "1.0.0",
-	url = "https://github.com/altair-sossai/l4d2-zone-server"
+	url = "https://github.com/altair-sossai/l4d2-screenshot-studio"
 };
 
 public void OnPluginStart()
@@ -95,6 +97,7 @@ public void OnPluginStart()
 	RegServerCmd("sm_shots_frame", Command_Frame, "sm_shots_frame <pitch> <yaw> <fov>");
 	RegServerCmd("sm_shots_weapon", Command_Weapon, "sm_shots_weapon <0|1|noshadow>");
 	RegServerCmd("sm_shots_turn", Command_Turn, "sm_shots_turn <yaw>");
+	RegServerCmd("sm_shots_pose", Command_Pose, "sm_shots_pose <pitch> <yaw> <roll>");
 	RegServerCmd("sm_shots_unhook", Command_Unhook, "Stops the per-frame host changes");
 	RegServerCmd("sm_shots_cvar", Command_Cvar, "sm_shots_cvar <name> [value]");
 
@@ -316,6 +319,10 @@ void LoadScenes()
 			kv.GetVector("angles", scene.angles);
 			kv.GetVector("target_origin", scene.targetOrigin);
 			kv.GetVector("target_angles", scene.targetAngles);
+			char meleeAngles[64];
+			kv.GetString("melee_target_angles", meleeAngles, sizeof(meleeAngles));
+			scene.hasMeleeAngles = strlen(meleeAngles) > 0;
+			kv.GetVector("melee_target_angles", scene.meleeAngles);
 			scene.viewModel = kv.GetNum("viewmodel", 0) == 1;
 			scene.fov = kv.GetNum("fov", 0);
 			kv.GetString("type", scene.type, sizeof(scene.type), name);
@@ -375,7 +382,7 @@ Action Command_Run(int args)
 	LoadSkins();
 	LoadScenes();
 
-	char shots[16];
+	char shots[128];
 	GetCmdArg(1, shots, sizeof(shots));
 
 	ArrayList filters = new ArrayList(ByteCountToCells(64));
@@ -391,7 +398,11 @@ Action Command_Run(int args)
 	{
 		char scene[16];
 		g_hSceneOrder.GetString(s, scene, sizeof(scene));
-		if (!StrEqual(shots, "all") && !StrEqual(shots, scene))
+		char wanted[24];
+		FormatEx(wanted, sizeof(wanted), ",%s,", scene);
+		char list[132];
+		FormatEx(list, sizeof(list), ",%s,", shots);
+		if (!StrEqual(shots, "all") && StrContains(list, wanted) == -1)
 		{
 			continue;
 		}
@@ -689,7 +700,8 @@ bool SetupScene(const char[] shot, int index)
 	if (StrEqual(scene.type, "ground"))
 	{
 		HideActor();
-		return SpawnProp(index, scene.targetOrigin, scene.targetAngles);
+		bool melee = StrContains(skin.weapon, "weapon_melee_") == 0 && scene.hasMeleeAngles;
+		return SpawnProp(index, scene.targetOrigin, melee ? scene.meleeAngles : scene.targetAngles);
 	}
 
 	HideActor();
@@ -728,12 +740,34 @@ Action Command_Turn(int args)
 	return Plugin_Handled;
 }
 
+Action Command_Pose(int args)
+{
+	int prop = EntRefToEntIndex(g_iProp);
+	if (prop == INVALID_ENT_REFERENCE || args < 3)
+	{
+		PrintToServer("sm_shots_pose <pitch> <yaw> <roll>");
+		return Plugin_Handled;
+	}
+
+	float angles[3];
+	angles[0] = GetCmdArgFloat(1);
+	angles[1] = GetCmdArgFloat(2);
+	angles[2] = GetCmdArgFloat(3);
+	TeleportEntity(prop, NULL_VECTOR, angles, NULL_VECTOR);
+	return Plugin_Handled;
+}
+
 Action Command_Weapon(int args)
 {
 	int weapon = EntRefToEntIndex(g_iPosedWeapon);
 	if (weapon == INVALID_ENT_REFERENCE)
 	{
-		Log("no posed weapon");
+		weapon = EntRefToEntIndex(g_iProp);
+	}
+
+	if (weapon == INVALID_ENT_REFERENCE)
+	{
+		Log("no weapon prop");
 		return Plugin_Handled;
 	}
 
@@ -886,11 +920,43 @@ bool SpawnProp(int index, const float origin[3], const float angles[3])
 	DispatchKeyValue(prop, "solid", "0");
 	DispatchKeyValue(prop, "targetname", PROP_NAME);
 	DispatchSpawn(prop);
-	TeleportEntity(prop, origin, angles, NULL_VECTOR);
+
+	float resting[3];
+	resting = origin;
+	resting[2] = origin[2] - LowestPoint(prop, angles);
+	TeleportEntity(prop, resting, angles, NULL_VECTOR);
 	SetEntProp(prop, Prop_Send, "m_nSkin", skin.family);
 
 	g_iProp = EntIndexToEntRef(prop);
 	return true;
+}
+
+float LowestPoint(int entity, const float angles[3])
+{
+	float mins[3];
+	float maxs[3];
+	GetEntPropVector(entity, Prop_Send, "m_vecMins", mins);
+	GetEntPropVector(entity, Prop_Send, "m_vecMaxs", maxs);
+
+	float front[3];
+	float right[3];
+	float up[3];
+	GetAngleVectors(angles, front, right, up);
+
+	float lowest = 0.0;
+	for (int corner = 0; corner < 8; corner++)
+	{
+		float x = (corner & 1) != 0 ? maxs[0] : mins[0];
+		float y = (corner & 2) != 0 ? maxs[1] : mins[1];
+		float z = (corner & 4) != 0 ? maxs[2] : mins[2];
+		float height = front[2] * x - right[2] * y + up[2] * z;
+		if (corner == 0 || height < lowest)
+		{
+			lowest = height;
+		}
+	}
+
+	return lowest;
 }
 
 void RemoveProp()

@@ -5,7 +5,6 @@ param(
     [double]$FillHeight = 0.65,
     [int]$Passes = 4,
     [int[]]$ActorYaws = @(170, 190, 210, 230, 250, 270, 290),
-    [int]$MinYawGap = 0,
     [string]$Studio = $(if ($env:L4D2_STUDIO) { $env:L4D2_STUDIO } else { 'E:\L4D2-Studio' })
 )
 $ErrorActionPreference = 'Stop'
@@ -177,6 +176,7 @@ if ($Weapons.Count -gt 0) { $samples.Keys.Where({ $_ -notin $Weapons }) | ForEac
 $configPath = Join-Path $PSScriptRoot '..\config\skin_shots.cfg'
 $installed = Join-Path $Studio 'left4dead2\addons\sourcemod\configs\skin_shots.cfg'
 $config = Get-Content $configPath -Raw
+Copy-Item $configPath $installed -Force
 $chosen = @{}
 $firstFraming = [regex]::Match($config, '(?s)\n\t\t"third"\r?\n\t\t\{[^}]*?"framing"\s*\{(.*?)\}').Groups[1].Value
 foreach ($entry in [regex]::Matches($firstFraming, '"(weapon_[a-z_]+)"\s*"[-\d.]+ [-\d.]+ [-\d.]+ ([-\d.]+)"'))
@@ -210,13 +210,18 @@ foreach ($scene in $Scenes)
         Send "sm_shots_weapon noshadow"
         Send "sm_shots_frame $pitch $yaw $fov"
 
-        $candidates = $ActorYaws
-        if ($chosen.Contains($weapon))
+        $isThird = [regex]::Match($block.Value, '"type"\s*"third"').Success
+        $candidates = @()
+        if ($isThird -and ($scene -eq 'third' -or -not $chosen.Contains($weapon)))
         {
-            $candidates = if ($MinYawGap -le 0) { @($chosen[$weapon]) } else { $ActorYaws.Where({ [Math]::Abs($_ - $chosen[$weapon]) -ge $MinYawGap }) }
+            $candidates = $ActorYaws
+        }
+        elseif ($isThird)
+        {
+            $candidates = @($chosen[$weapon])
         }
 
-        $actorYaw = $candidates[0]; $best = -1
+        $actorYaw = -1; $best = -1
         foreach ($candidate in $candidates)
         {
             Send "sm_shots_turn $candidate"
@@ -224,8 +229,13 @@ foreach ($scene in $Scenes)
             $box = Find-Weapon "$scene"
             if ($box[6] -gt $best) { $best = $box[6]; $actorYaw = $candidate }
         }
-        Send "sm_shots_turn $actorYaw"
-        if ($scene -eq $Scenes[0]) { $chosen[$weapon] = $actorYaw }
+
+        if ($isThird)
+        {
+            Send "sm_shots_turn $actorYaw"
+            $chosen[$weapon] = $actorYaw
+        }
+
         for ($pass = 0; $pass -lt $Passes; $pass++)
         {
             Send "sm_shots_frame $pitch $yaw $fov"
@@ -234,7 +244,7 @@ foreach ($scene in $Scenes)
             if ($box[0] -lt 0) { Write-Warning "$scene $weapon`: weapon not found on screen"; break }
             $pitch, $yaw, $fov = Solve $pitch $yaw $fov $box
         }
-        $results[$weapon] = "$pitch $yaw $fov $actorYaw"
+        $results[$weapon] = if ($isThird) { "$pitch $yaw $fov $actorYaw" } else { "$pitch $yaw $fov" }
         "$scene $weapon ($($samples[$weapon])): $pitch $yaw $fov actor $actorYaw"
     }
 

@@ -47,6 +47,7 @@ O plugin só usa a seção do **mapa que está aberto**. Dá para ter cenas para
 | `fov` | `"34"` | Zoom. 0 ou ausente = FOV padrão do jogo |
 | `target_origin` | `"770 598 -482"` | Onde fica a arma no chão (`ground`) ou o sobrevivente (`third`) |
 | `target_angles` | `"0 111 0"` | Rotação da arma no chão ou do sobrevivente |
+| `melee_target_angles` | `"0 0 90"` | Só no chão: rotação usada para armas **melee**, que são modeladas num eixo diferente das armas de fogo |
 | `fill` | `"0.3"` | Só para a calibração: quanto do quadro a arma deve ocupar (ver [documento 8](08-enquadramento-automatico.md)) |
 | `framing` | seção | Enquadramento calibrado por arma (gerado pelo `calibrate.ps1`) |
 
@@ -65,7 +66,7 @@ O plugin só usa a seção do **mapa que está aberto**. Dá para ter cenas para
 }
 ```
 
-Os quatro números são: **pitch**, **yaw** e **FOV** da câmera, e o **yaw do sobrevivente**. Quando existe uma linha para a arma da skin, ela **substitui** o `angles`, o `fov` e o yaw do `target_angles` da cena. Essa seção é escrita pelo `calibrate.ps1`; não é para editar à mão (mas pode, se quiser ajustar fino uma arma).
+Os quatro números são: **pitch**, **yaw** e **FOV** da câmera, e o **yaw do sobrevivente**. Nas cenas de chão não há sobrevivente, então são só os três primeiros. Quando existe uma linha para a arma da skin, ela **substitui** o `angles`, o `fov` e o yaw do `target_angles` da cena. Essa seção é escrita pelo `calibrate.ps1`; não é para editar à mão (mas pode, se quiser ajustar fino uma arma).
 
 ---
 
@@ -74,7 +75,9 @@ Os quatro números são: **pitch**, **yaw** e **FOV** da câmera, e o **yaw do s
 | Cena | Tipo | Ideia |
 |---|---|---|
 | `hand` | `hand` | No cais, olhando para o rio e o barco a vapor, segurando a arma |
-| `ground` | `ground` | A mesma posição, olhando bem para baixo (pitch 50), com a arma deitada no chão de madeira |
+| `ground` | `ground` | A mesma posição, olhando bem para baixo (pitch 50), com a arma deitada no chão, cano para a esquerda |
+| `ground2` | `ground` | A mesma arma deitada com o cano para a direita e o **outro lado** virado para cima |
+| `ground3` | `ground` | A arma na diagonal e levemente inclinada, numa posição mais "natural", vista em perspectiva |
 | `third` | `third` | O sobrevivente em pé perto de um muro de concreto iluminado pelo sol; close na arma |
 | `third2` | `third` | Mesmo lugar e mesma pose, plano mais aberto (`fill 0.3`) |
 | `park` | `park` | Atrás da câmera, fora de todos os quadros |
@@ -113,6 +116,28 @@ Para posicionar a arma no chão ou o sobrevivente, o processo é igual: fique em
 ### Ângulos da arma no chão
 
 A arma de chão é um `prop_dynamic` com o worldmodel. O worldmodel das armas é modelado "em pé", como se estivesse na mão. Para deitar a arma de lado no chão, o `target_angles` usa **roll 90**: `"0 270 90"`. O yaw (270) escolhe para que lado o cano aponta.
+
+As três fotos de chão usam estas rotações:
+
+| Cena | Armas de fogo | Melee | Por quê |
+|---|---|---|---|
+| `ground` | `0 270 90` | `0 0 90` | Cano para a esquerda |
+| `ground2` | `0 90 -90` | `0 180 -90` | Cano para a direita. O **roll negativo** vira a arma para o outro lado; só girar o yaw mostraria o mesmo lado espelhado |
+| `ground3` | `0 225 80` | `0 315 90` | Diagonal. O roll 80 (em vez de 90) inclina um pouco, mostrando o topo da arma |
+
+**Por que a melee tem rotação própria.** Os modelos de melee do L4D2 têm o comprimento ao longo do eixo **z** (a lâmina "para cima"), enquanto as armas de fogo têm o cano ao longo do eixo **x**. Com a mesma rotação das armas de fogo, a katana ficava apontada para a câmera e as três fotos saíam quase iguais. Somar 90 graus ao yaw deixa a melee atravessada no quadro, como as armas de fogo.
+
+Para testar uma rotação sem editar o arquivo:
+
+```powershell
+.\scripts\send.ps1 sm_shots_show floral-guitar ground
+.\scripts\send.ps1 sm_shots_pose 0 315 90
+.\scripts\send.ps1 sm_shots_snap teste_guitarra
+```
+
+### Encostando a arma no chão
+
+A origem de um modelo de arma fica na empunhadura, não no ponto mais baixo. Deitada, parte da arma ficava **abaixo do chão** (a guitarra era a pior). O plugin calcula o ponto mais baixo da arma já girada e a levanta exatamente o necessário, então o `target_origin` deve ser a **altura do chão** (a mesma altura dos pés do `sm_shots_where`). O código dessa conta está explicado no [documento 13](13-codigo-do-plugin.md#138-spawnprop-e-lowestpoint-a-arma-no-chão-sem-afundar).
 
 ---
 

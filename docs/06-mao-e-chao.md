@@ -108,7 +108,7 @@ Toda arma melee do L4D2 é a mesma classe `weapon_melee`; o que muda é a chave 
 
 ---
 
-## 6.4 A arma no chão (`ground`)
+## 6.4 A arma no chão (`ground`, `ground2`, `ground3`)
 
 Aqui não há jogador segurando nada. O plugin cria um **`prop_dynamic_override`** com o worldmodel combinado:
 
@@ -118,9 +118,17 @@ DispatchKeyValue(prop, "model", models.worldModel);
 DispatchKeyValue(prop, "solid", "0");                 // sem colisão
 DispatchKeyValue(prop, "targetname", PROP_NAME);      // "skin_shots_prop", para achar e remover depois
 DispatchSpawn(prop);
-TeleportEntity(prop, scene.targetOrigin, scene.targetAngles, NULL_VECTOR);
+
+float resting[3];
+resting = origin;
+resting[2] = origin[2] - LowestPoint(prop, angles);   // levanta até o ponto mais baixo encostar no chão
+TeleportEntity(prop, resting, angles, NULL_VECTOR);
 SetEntProp(prop, Prop_Send, "m_nSkin", skin.family);
 ```
+
+São três fotos de chão por skin: cano para a esquerda, cano para a direita (mostrando o outro lado) e uma na diagonal, levemente inclinada. As rotações e o motivo de as armas melee terem rotação própria estão no [documento 5](05-cenas.md#ângulos-da-arma-no-chão). A conta do `LowestPoint` está explicada linha a linha no [documento 13](13-codigo-do-plugin.md#138-spawnprop-e-lowestpoint-a-arma-no-chão-sem-afundar).
+
+As três cenas de chão também passam pela **calibração automática** (como a terceira pessoa), que centraliza a arma e ajusta o zoom para cada tipo de arma. Sem ela, a escopeta, que é comprida, saía encostada na borda do quadro.
 
 - **`prop_dynamic_override`** em vez de `prop_dynamic`: o `_override` aceita qualquer modelo, inclusive os que não foram feitos para serem props (o `prop_dynamic` comum recusa modelos sem a configuração de prop).
 - **Sem física:** a arma não cai nem rola. Ela fica exatamente na posição e rotação do config, igual em todas as fotos.
@@ -128,7 +136,7 @@ SetEntProp(prop, Prop_Send, "m_nSkin", skin.family);
 
 ### Por que a câmera é a mesma da mão
 
-A cena `ground` usa a mesma posição da `hand` com pitch 50 (olhando para baixo) e FOV 28 (zoom). A arma fica a uns 50 unidades à frente, no chão do cais. Mesma luz, mesmo lugar, só muda o que se olha.
+As cenas de chão usam a mesma posição da `hand`, olhando para baixo (pitch ~45 a 50). A arma fica a uns 50 unidades à frente, no chão do cais. Mesma luz, mesmo lugar, só muda o que se olha; a direção exata e o zoom vêm da calibração.
 
 ---
 

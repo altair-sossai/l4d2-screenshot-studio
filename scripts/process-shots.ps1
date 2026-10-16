@@ -10,7 +10,7 @@ $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 
 $source = Join-Path $Studio 'left4dead2\screenshots\skinshots'
-$shots = 'hand', 'ground', 'third', 'third2'
+$shots = 'hand', 'ground', 'ground2', 'ground3', 'third', 'third2'
 $codec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object MimeType -eq 'image/jpeg'
 $parameters = New-Object System.Drawing.Imaging.EncoderParameters 1
 $parameters.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter ([System.Drawing.Imaging.Encoder]::Quality), $Quality
