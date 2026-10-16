@@ -166,7 +166,7 @@ function Solve([double]$pitch, [double]$yaw, [double]$fov, [int[]]$box)
 
 $skinsConfig = Get-Content (Join-Path $Studio 'left4dead2\addons\sourcemod\configs\weapon_skins.cfg') -Raw
 $samples = [ordered]@{}
-foreach ($match in [regex]::Matches($skinsConfig, '"([a-z0-9-]+)"[^\n]*\n\s*\{\s*\n\s*"weapon"\s*"(weapon_[a-z_]+)"'))
+foreach ($match in [regex]::Matches($skinsConfig, '"([a-z0-9-]+)"[^\n]*\n\s*\{\s*\n\s*"weapon"\s*"(weapon_[a-z0-9_]+)"'))
 {
     $weapon = $match.Groups[2].Value
     if (-not $samples.Contains($weapon)) { $samples[$weapon] = $match.Groups[1].Value }
@@ -179,7 +179,7 @@ $config = Get-Content $configPath -Raw
 Copy-Item $configPath $installed -Force
 $chosen = @{}
 $firstFraming = [regex]::Match($config, '(?s)\n\t\t"third"\r?\n\t\t\{[^}]*?"framing"\s*\{(.*?)\}').Groups[1].Value
-foreach ($entry in [regex]::Matches($firstFraming, '"(weapon_[a-z_]+)"\s*"[-\d.]+ [-\d.]+ [-\d.]+ ([-\d.]+)"'))
+foreach ($entry in [regex]::Matches($firstFraming, '"(weapon_[a-z0-9_]+)"\s*"[-\d.]+ [-\d.]+ [-\d.]+ ([-\d.]+)"'))
 {
     $chosen[$entry.Groups[1].Value] = [int]$entry.Groups[2].Value
 }
@@ -197,7 +197,7 @@ foreach ($scene in $Scenes)
 
     $results = [ordered]@{}
     $existing = [regex]::Match($block.Value, '(?s)"framing"\s*\{(.*?)\}').Groups[1].Value
-    foreach ($entry in [regex]::Matches($existing, '"(weapon_[a-z_]+)"\s*"([-\d. ]+)"'))
+    foreach ($entry in [regex]::Matches($existing, '"(weapon_[a-z0-9_]+)"\s*"([-\d. ]+)"'))
     {
         $results[$entry.Groups[1].Value] = $entry.Groups[2].Value
     }

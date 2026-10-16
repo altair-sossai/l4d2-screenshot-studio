@@ -194,6 +194,14 @@ O problema mais demorado do projeto. Vale ler com calma, porque mostra como isol
 
 Uma função chamada `Measure` nunca rodava: `measure` é **apelido** de `Measure-Object`, e apelidos têm prioridade sobre funções. Renomeada para `Find-Weapon`.
 
+### A MP5 ficou sem calibração
+
+- **Sintoma:** todas as armas saíam bem enquadradas, menos a MP5, torta e fora do centro.
+- **Investigação:** o `skin_shots.cfg` não tinha nenhuma linha de `framing` para `weapon_smg_mp5`. A calibração nem tinha tentado essa arma.
+- **Causa:** a expressão regular que lê o `weapon_skins.cfg` procurava nomes de arma com `weapon_[a-z_]+`: só letras e `_`. O nome `weapon_smg_mp5` tem um **dígito**, então a MP5 nunca entrava na lista.
+- **Solução:** `weapon_[a-z0-9_]+`.
+- **Lição:** quando um item "some" de um processo em lote, verifique primeiro se ele chegou a entrar na lista. Expressões regulares escritas olhando só para alguns exemplos costumam deixar casos de fora.
+
 ### Listas passadas com `pwsh -File`
 
 `-Weapons a,b` chega como um texto só. O script separa por vírgula.
