@@ -429,7 +429,7 @@ Action Command_Run(int args)
 	Log("run %s: %d shots", shots, g_hJobs.Length);
 
 	g_iJob = -1;
-	CreateTimer(1.0, Timer_NextJob, _, TIMER_FLAG_NO_MAPCHANGE);
+	CreateTimer(3.0, Timer_NextJob, _, TIMER_FLAG_NO_MAPCHANGE);
 	return Plugin_Handled;
 }
 
@@ -1097,7 +1097,8 @@ void PrepareWorld()
 		{ "con_drawnotify", "0" },
 		{ "jpeg_quality", "95" },
 		{ "mat_motion_blur_enabled", "0" },
-		{ "engine_no_focus_sleep", "0" }
+		{ "engine_no_focus_sleep", "0" },
+		{ "cl_viewmodelfovsurvivor", "50" }
 	};
 
 	for (int i = 0; i < sizeof(settings); i++)
@@ -1138,6 +1139,13 @@ void RemoveLooseItems()
 			continue;
 		}
 
+		if (StrEqual(classname, "prop_physics") && IsCarryable(entity))
+		{
+			RemoveEntity(entity);
+			removed++;
+			continue;
+		}
+
 		if (strncmp(classname, "weapon_", 7) != 0 && strncmp(classname, "upgrade_", 8) != 0)
 		{
 			continue;
@@ -1153,6 +1161,17 @@ void RemoveLooseItems()
 	}
 
 	Log("removed %d loose items", removed);
+}
+
+bool IsCarryable(int entity)
+{
+	char model[PLATFORM_MAX_PATH];
+	GetEntPropString(entity, Prop_Data, "m_ModelName", model, sizeof(model));
+
+	return StrContains(model, "gascan", false) != -1
+		|| StrContains(model, "propanecanister", false) != -1
+		|| StrContains(model, "oxygentank", false) != -1
+		|| StrContains(model, "explosive_box", false) != -1;
 }
 
 void PrepareOutput()
@@ -1173,11 +1192,39 @@ void PrepareOutput()
 
 void TakeScreenshot()
 {
+	ClearScreenshots();
+
 	int host = GetHost();
 	if (host != -1)
 	{
 		ClientCommand(host, "jpeg");
 	}
+}
+
+void ClearScreenshots()
+{
+	DirectoryListing dir = OpenDirectory(SCREENSHOTS_DIR);
+	if (dir == null)
+	{
+		return;
+	}
+
+	char name[PLATFORM_MAX_PATH];
+	char path[PLATFORM_MAX_PATH];
+	FileType type;
+	while (dir.GetNext(name, sizeof(name), type))
+	{
+		if (type != FileType_File || StrContains(name, ".jpg", false) == -1)
+		{
+			continue;
+		}
+
+		FormatEx(path, sizeof(path), "%s/%s", SCREENSHOTS_DIR, name);
+		DeleteFile(path);
+		Log("removed leftover screenshot %s", path);
+	}
+
+	delete dir;
 }
 
 bool MoveNewestScreenshot(const char[] target)

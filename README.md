@@ -50,7 +50,7 @@ l4d2-screenshot-studio/
 │   ├── run-studio.ps1             ← abre a cópia do jogo no mapa certo, na resolução certa
 │   ├── send.ps1                   ← envia um comando para o plugin
 │   ├── calibrate.ps1              ← calibra automaticamente o enquadramento de cada arma
-│   └── process-shots.ps1          ← recorta, comprime e monta a folha de revisão
+│   └── process-shots.ps1          ← gera as fotos em AVIF e WebP (grande, miniatura e card) e a folha de revisão
 ├── tools/
 │   ├── sheet.ps1                  ← junta vários prints numa folha (para revisar rápido)
 │   ├── diffimg.ps1                ← mostra a diferença entre dois prints (diagnóstico)

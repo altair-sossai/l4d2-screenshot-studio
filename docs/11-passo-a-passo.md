@@ -160,7 +160,11 @@ Para fechar o jogo sozinho no fim (bom para rodar à noite):
 .\scripts\process-shots.ps1
 ```
 
-Gera `output\<skin>\<cena>.jpg` em 1280×720 e a folha de revisão `output\contact-sheet.jpg`. Abra a folha e confira linha por linha.
+Gera, para cada skin, as seis fotos em AVIF e WebP em `output\<skin>\` (grande 1280×720, miniatura 320×180 e, para as fotos 1, 5 e 6, o quadrado de 540 px do card) e a folha de revisão `output\contact-sheet.jpg`. Precisa do `ffmpeg` no PATH (`winget install Gyan.FFmpeg`) e leva ~6 minutos para 196 skins. Abra a folha e confira linha por linha. Os formatos e a escolha da compressão estão no [documento 9](09-tratamento.md).
+
+Para refazer só algumas skins: `.\scripts\process-shots.ps1 -Skins volcanic-uzi,old-katana`.
+
+> Ao fotografar a primeira pessoa, abra o jogo de novo (em vez de recarregar o mapa com `map`) e espere a cena de abertura terminar. Depois de um `map`, os braços podem não aparecer (veja o [diário](10-problemas-e-solucoes.md#recarregar-o-mapa-sumia-com-os-braços)).
 
 ---
 
@@ -173,7 +177,7 @@ Gera `output\<skin>\<cena>.jpg` em 1280×720 e a folha de revisão `output\conta
 | Abrir + cutscene | 3 min |
 | Calibrar (uma vez) | 15 min |
 | 784 fotos | 30 min |
-| Tratar | 2 min |
+| Tratar (AVIF e WebP) | 6 min |
 
 ---
 

@@ -6,60 +6,159 @@ Os prints saem do jogo em 1920×1080, JPEG com qualidade 95, em:
 left4dead2/screenshots/skinshots/
 ├── hand/<skin>.jpg
 ├── ground/<skin>.jpg
+├── ground2/<skin>.jpg
+├── ground3/<skin>.jpg
 ├── third/<skin>.jpg
 ├── third2/<skin>.jpg
 └── test/            ← prints avulsos (sm_shots_snap) e da calibração
 ```
 
-O [`scripts/process-shots.ps1`](../scripts/process-shots.ps1) transforma isso no formato final.
+Um print desses tem ~500 KB. Para um site, isso é pesado demais: uma página com 196 skins seria impossível. O [`scripts/process-shots.ps1`](../scripts/process-shots.ps1) transforma cada print em versões pequenas, em formatos modernos.
 
 ---
 
-## 9.1 O que o script faz
+## 9.1 As versões de cada foto
 
-Para cada skin e cada cena:
+As seis fotos de cada skin são numeradas na ordem em que aparecem no site:
 
-1. **Recorte 16:9 central.** Calcula o maior retângulo 16:9 que cabe na imagem e centraliza. Como o jogo já roda em 1920×1080 (16:9), na prática não corta nada; o recorte existe para o caso de rodar o estúdio em outra resolução.
-2. **Redimensiona** para 1280×720, com interpolação bicúbica de alta qualidade (`HighQualityBicubic`).
-3. **Comprime** em JPEG com qualidade 82. Uma foto de 1920×1080 a 95 tem ~500 KB; a de 1280×720 a 82 fica em ~150 KB, sem diferença visível num site.
-4. **Salva** em `<saída>/<skin>/<cena>.jpg`, uma pasta por skin:
-   ```text
-   skin-shots/
-   ├── abyss-uzi/
-   │   ├── hand.jpg
-   │   ├── ground.jpg
-   │   ├── third.jpg
-   │   └── third2.jpg
-   └── ...
-   ```
+| Nº | Cena |
+|---|---|
+| 1 | `hand` (primeira pessoa) |
+| 2, 3, 4 | `ground`, `ground2`, `ground3` (no chão) |
+| 5, 6 | `third`, `third2` (terceira pessoa) |
 
-No fim, monta uma **folha de revisão** (*contact sheet*): uma imagem grande com uma linha por skin e uma coluna por cena, em miniatura, com o nome da skin. Com ela dá para revisar as 196 skins × 4 fotos de uma vez, procurando algo estranho (uma arma sem skin, um print preto, um bot no meio da cena).
+E cada foto vira até três arquivos, cada um para um uso no site:
 
----
+| Arquivo | Tamanho | Para quê | Peso médio (AVIF) |
+|---|---|---|---|
+| `N.avif` / `N.webp` | 1280×720 | A imagem grande da janela de detalhes e o zoom | ~42 KB |
+| `N-thumb.avif` / `N-thumb.webp` | 320×180 | As miniaturas embaixo da imagem grande | ~6 KB |
+| `N-card.avif` / `N-card.webp` | 540×540 | O card da loja, quando o mouse passa por cima (só fotos 1, 5 e 6) | ~15 KB |
 
-## 9.2 Por que `System.Drawing`
-
-O PowerShell 7 roda sobre .NET, e o `System.Drawing` está disponível no Windows sem instalar nada. Para recortar, redimensionar e salvar JPEG com qualidade escolhida, basta:
-
-```powershell
-Add-Type -AssemblyName System.Drawing
-
-$codec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object MimeType -eq 'image/jpeg'
-$parameters = New-Object System.Drawing.Imaging.EncoderParameters 1
-$parameters.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter ([System.Drawing.Imaging.Encoder]::Quality), 82L
-
-$bitmap = New-Object System.Drawing.Bitmap 1280, 720
-$graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-$graphics.InterpolationMode = 'HighQualityBicubic'
-$graphics.DrawImage($image, $destino, $origemRecortada, 'Pixel')
-$bitmap.Save($arquivo, $codec, $parameters)
+```text
+skin-shots/
+└── volcanic-uzi/
+    ├── 1.avif   1.webp   1-thumb.avif   1-thumb.webp   1-card.avif   1-card.webp
+    ├── 2.avif   2.webp   2-thumb.avif   2-thumb.webp
+    ├── ...
+    └── 6.avif   6.webp   6-thumb.avif   6-thumb.webp   6-card.avif   6-card.webp
 ```
 
-Sempre faça `Dispose()` das imagens e dos `Graphics`: o `System.Drawing` usa recursos do Windows (GDI+) que não são liberados sozinhos rapidamente, e com centenas de imagens a memória acaba.
+Por que três tamanhos? Porque **cada um é baixado num momento diferente**:
+
+- ao abrir a loja, nenhuma foto é baixada (o card mostra a imagem da Workshop, como antes);
+- ao passar o mouse num card, baixa só os 3 `-card` daquela skin (~45 KB);
+- ao abrir os detalhes, baixa a foto 1 grande e as 6 miniaturas (~80 KB);
+- cada miniatura clicada baixa a sua versão grande.
+
+### O card é quadrado
+
+O card da loja é quadrado e as fotos são 16:9. Cortar sempre no centro funcionaria para as fotos de terceira pessoa (a calibração centralizou a arma), mas não para a primeira pessoa: a arma fica à direita da tela. Por isso o recorte quadrado tem um centro por tipo:
+
+```powershell
+$cardCenter = @{ hand = 0.6; handMelee = 0.72 }
+```
+
+O número é a posição horizontal do centro do recorte (0 = borda esquerda, 1 = direita). As armas melee ficam ainda mais à direita na primeira pessoa, por isso têm um valor próprio. O script descobre se a skin é melee lendo o `weapon_skins.cfg`.
+
+As miniaturas e a imagem grande **não** são quadradas: mostram a foto inteira em 16:9, porque numa miniatura quadrada a escopeta e a katana ficavam cortadas.
 
 ---
 
-## 9.3 Ferramentas de revisão e diagnóstico
+## 9.2 Comprimir ao máximo sem perder qualidade
+
+### Formato: AVIF, com WebP de reserva
+
+| Formato | Suporte | Tamanho para a mesma qualidade |
+|---|---|---|
+| JPEG | Todos | Referência |
+| **WebP** | Todos os navegadores atuais | ~30% menor que JPEG |
+| **AVIF** | Chrome, Firefox, Safari 16+, Edge | ~50% menor que JPEG |
+
+O site detecta se o navegador abre AVIF (carregando uma imagem AVIF minúscula embutida no código) e usa AVIF; senão, WebP. Por isso cada arquivo existe nos dois formatos.
+
+### Como a qualidade foi escolhida (medindo, não no olho)
+
+"Sem perder qualidade" precisa de um número. A medida usada foi o **SSIM** (*structural similarity*): compara a imagem comprimida com a original e dá 1,0 para idênticas. Acima de ~0,98 a diferença é praticamente invisível.
+
+O teste: 5 fotos variadas, cada uma comprimida em várias qualidades, medindo tamanho e SSIM com o `ffmpeg`:
+
+```bash
+ffmpeg -i comprimida.avif -i original.png -lavfi ssim -f null -
+```
+
+| Formato e qualidade | Tamanho médio | SSIM médio |
+|---|---|---|
+| WebP 75 | 50 KB | 0,972 |
+| WebP 80 | 63 KB | 0,978 |
+| **WebP 85** | **80 KB** | **0,983** |
+| WebP 90 | 112 KB | 0,988 |
+| AVIF crf 30 | 25 KB | 0,970 |
+| AVIF crf 25 | 33 KB | 0,977 |
+| **AVIF crf 20** | **42 KB** | **0,982** |
+
+Leitura da tabela:
+
+- **AVIF crf 20 tem a mesma qualidade que WebP 85 com metade do tamanho.** No AVIF, `crf` menor = mais qualidade.
+- Subir o WebP de 85 para 90 aumenta 40% o tamanho para ganhar pouco SSIM: é o ponto em que comprimir menos deixa de valer a pena.
+- As miniaturas usam um pouco menos de qualidade (AVIF crf 24, WebP 80), porque em tamanho pequeno os defeitos de compressão não aparecem.
+
+### Velocidade do codificador
+
+O AVIF é lento de codificar. O `libaom` tem o parâmetro `-cpu-used` (0 = mais lento e melhor, 8 = mais rápido):
+
+| `-cpu-used` | Tempo por foto | Tamanho | SSIM |
+|---|---|---|---|
+| 4 | 0,9 s | 30,0 KB | 0,9860 |
+| **6** | **0,3 s** | **30,4 KB** | **0,9857** |
+| 8 | 0,3 s | 30,4 KB | 0,9857 |
+
+Com 6, a perda é desprezível e fica 3× mais rápido. Mesmo assim são 1.176 fotos × 6 arquivos, então o script codifica **6 fotos em paralelo** (`ForEach-Object -Parallel`). As 196 skins levam ~6 minutos.
+
+### Outras escolhas que ajudam
+
+- **Redimensionar com `lanczos`**: o melhor filtro de redução do `ffmpeg`, mantém o detalhe da pintura da arma.
+- **`yuv420p`**: o formato de cor que todo navegador decodifica. Ele guarda a cor em resolução menor que o brilho, algo que o olho quase não percebe.
+- **Um `ffmpeg` por foto, várias saídas**: o comando lê o JPEG uma vez, divide (`split`) e gera todas as versões. Ler e decodificar o JPEG 6 vezes seria desperdício.
+
+---
+
+## 9.3 O comando do `ffmpeg` por dentro
+
+Para cada foto o script monta um *filter graph* assim (exemplo da foto 1, que tem as três versões):
+
+```text
+[0]split=6[s0][s1][s2][s3][s4][s5];
+[s0]crop=1920:1080:0:0,scale=1280:720:flags=lanczos[a0];      ← grande, AVIF
+[s1]crop=1920:1080:0:0,scale=1280:720:flags=lanczos[w0];      ← grande, WebP
+[s2]crop=1920:1080:0:0,scale=320:180:flags=lanczos[a1];       ← miniatura, AVIF
+[s3]crop=1920:1080:0:0,scale=320:180:flags=lanczos[w1];       ← miniatura, WebP
+[s4]crop=1080:1080:612:0,scale=540:540:flags=lanczos[a2];     ← card, AVIF
+[s5]crop=1080:1080:612:0,scale=540:540:flags=lanczos[w2]      ← card, WebP
+```
+
+E cada saída é mapeada para um arquivo com seu codificador:
+
+```text
+-map [a0] -c:v libaom-av1 -still-picture 1 -cpu-used 6 -pix_fmt yuv420p -crf 20 1.avif
+-map [w0] -c:v libwebp -compression_level 6 -preset picture -quality 85     1.webp
+...
+```
+
+- `split=6` duplica a imagem decodificada em 6 cópias.
+- `crop=L:A:X:Y` recorta (largura, altura, posição). `612` é o X do recorte quadrado com centro em 0,6: `1920 × 0,6 − 1080 / 2 = 612`.
+- `-still-picture 1` diz ao AVIF que é uma imagem, não um vídeo.
+- `-compression_level 6` é o esforço máximo do WebP (mais lento, arquivo menor, mesma qualidade).
+
+---
+
+## 9.4 Folha de revisão
+
+No fim, o script monta uma **folha de revisão** (*contact sheet*): uma imagem grande com uma linha por skin e uma coluna por foto, com o nome da skin. Com ela dá para revisar as 196 skins × 6 fotos de uma vez, procurando algo estranho (uma arma sem skin, um print preto, um bot no meio da cena).
+
+---
+
+## 9.5 Ferramentas de revisão e diagnóstico
 
 Na pasta [`tools/`](../tools) ficam scripts pequenos usados durante o desenvolvimento. Eles não fazem parte do fluxo normal, mas foram essenciais para investigar problemas:
 
@@ -70,10 +169,19 @@ Na pasta [`tools/`](../tools) ficam scripts pequenos usados durante o desenvolvi
 | `crop.ps1` | Recorta a mesma região de vários prints e põe lado a lado | Ver de perto o rosto deformado em dois prints seguidos |
 
 ```powershell
-.\tools\sheet.ps1 -Pattern 'check_*.jpg' -Out folha.jpg -Cols 4
+.\tools\sheet.ps1 -Folder 'E:\L4D2-Studio\left4dead2\screenshots\skinshots\test' -Pattern 'check_*.jpg' -Out folha.jpg -Cols 4
 .\tools\diffimg.ps1 -A com_arma.jpg -B sem_arma.jpg -Out diferenca.jpg
 .\tools\crop.ps1 -Files a.jpg,b.jpg -X 650 -Y 0 -W 450 -H 400 -Out rostos.jpg
 ```
+
+---
+
+## 9.6 Publicando no site
+
+As fotos do servidor L4D2 Zone ficam no repositório `l4d2-zone-server-assets`, na pasta `assets/skin-shots`, e vão para o Azure Blob Storage pelo pipeline daquele repositório. Dois cuidados:
+
+- **Subir só o que mudou.** O pipeline compara o MD5 de cada arquivo com o `Content-MD5` do blob e envia só os diferentes. Sem isso, cada push reenviaria as 7 mil imagens.
+- **Cache longo + versão na URL.** As fotos são servidas com `Cache-Control: max-age=31536000, immutable` (um ano), então o navegador nunca as baixa de novo. Quando as fotos de uma skin forem refeitas, o site muda a versão na URL (`1.avif?v=2`, campo `shots` do `skins.json`), e o navegador trata como um arquivo novo.
 
 ---
 

@@ -55,6 +55,38 @@ Cada problema segue o formato:
 - **Sintoma:** um kit médico e outros itens do mapa no meio da foto do chão.
 - **Solução:** `RemoveLooseItems`: remove toda entidade `weapon_*`/`upgrade_*` sem dono.
 
+### Um print de outra cena no lugar certo
+
+- **Sintoma:** a foto de primeira pessoa do machado `red-black-axe` saiu com uma escopeta no chão.
+- **Investigação:** o print era de uma sequência anterior, interrompida. O plugin pega "o `.jpg` mais novo da pasta `screenshots`"; um print que sobrou de antes estava lá e foi pego no lugar do novo.
+- **Solução:** `ClearScreenshots()`: antes de cada `jpeg`, apaga qualquer `.jpg` solto na pasta `screenshots` (as fotos prontas ficam em `screenshots/skinshots`, que não é tocada).
+- **Lição:** "o arquivo mais novo" só é confiável se você garantir que a pasta começa vazia.
+
+### Um galão vermelho no cais
+
+- **Sintoma:** depois de reabrir o jogo, um galão de gasolina vermelho apareceu no cais, no canto da foto de primeira pessoa.
+- **Causa:** o mapa às vezes cria itens de cenário que dá para carregar (galão, botijão, caixa de fogos) como `prop_physics`, não como `weapon_*`, então o `RemoveLooseItems` não os via.
+- **Solução:** `IsCarryable` remove também os `prop_physics` cujo modelo é de galão, botijão, cilindro de oxigênio ou caixa de fogos.
+
+### Braços esticados no taco de críquete
+
+- **Sintoma:** nas fotos refeitas, o taco de críquete aparecia com os dois braços do personagem esticados em "barbatanas" pontudas. Nas fotos da sequência principal, o mesmo taco estava normal.
+- **Investigação, em ordem:** com o taco original do jogo (sem skin, sem o plugin mexendo) o defeito continuava, então não era a skin. Recarregar o mapa e reabrir o jogo não mudavam nada. Ao comparar com as fotos boas, a arma aparecia **maior** nelas: o campo de visão da arma em primeira pessoa (`cl_viewmodelfovsurvivor`) era diferente.
+- **Causa:** a cópia do jogo veio com uma config de terceiros que define `cl_viewmodelfovsurvivor 120` e tem teclas para alternar esse valor. Cada sessão do estúdio começava com um valor diferente, e com valores altos a animação do taco mostra partes dos braços que normalmente ficam fora da tela.
+- **Solução:** o `PrepareWorld` fixa `cl_viewmodelfovsurvivor 50`, o mesmo das fotos boas. As fotos não dependem mais da config de quem joga.
+- **Lição:** tudo que afeta a imagem precisa ser definido pelo próprio estúdio. Se uma configuração vem "de fora" (do usuário, da cópia do jogo), cedo ou tarde ela muda.
+
+### A primeira foto de uma sequência saía com a câmera virada
+
+- **Sintoma:** na primeira skin de algumas sequências, a câmera estava girada uns 40 graus, mostrando o prédio em vez do rio.
+- **Causa:** o `PrepareWorld` tira bots e itens e muda várias cvars no mesmo instante; a primeira cena era montada antes de o jogo terminar de aplicar tudo.
+- **Solução:** a primeira foto espera 3 segundos depois do `PrepareWorld` (antes era 1).
+
+### Recarregar o mapa sumia com os braços
+
+- **Sintoma:** depois do comando `map` (recarregar o mapa com o jogo aberto), as fotos de primeira pessoa saíam sem braço nenhum, mesmo depois da cena de abertura.
+- **Solução:** para tirar fotos de primeira pessoa, fechar e abrir o jogo de novo (`quit` e `run-studio.ps1`) em vez de recarregar o mapa. Numa sessão nova, depois da cena de abertura, os braços aparecem.
+
 ### A escopeta saía fora do quadro no chão
 
 - **Sintoma:** com câmera e zoom fixos, a escopeta (comprida) encostava na borda e ficava torta no quadro, enquanto a Magnum ficava pequena no meio.

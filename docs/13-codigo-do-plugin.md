@@ -693,6 +693,10 @@ bool MoveNewestScreenshot(const char[] target)
 - **`FileSize(source) <= 0`**: o jogo cria o arquivo e só depois escreve o conteúdo. Se pegarmos o arquivo vazio, o print sairia corrompido. Tamanho zero = "ainda não terminou", tenta de novo no próximo timer.
 - **`RenameFile(destino, origem)`**: atenção à ordem dos argumentos, **destino primeiro**. Renomear para outra pasta move o arquivo.
 
+### Limpando sobras antes de cada print (`ClearScreenshots`)
+
+Se a pasta `screenshots` tiver um `.jpg` que sobrou de uma sequência interrompida, "o mais novo" pode ser esse arquivo velho, e ele vai parar no lugar da foto nova. Por isso o `TakeScreenshot` chama `ClearScreenshots` antes do `jpeg`: ela percorre a pasta com o mesmo `OpenDirectory`/`GetNext` e apaga todo `.jpg` solto. As fotos prontas ficam em `screenshots/skinshots`, uma subpasta, e não são tocadas (`FileType_File` ignora pastas).
+
 ---
 
 ## 13.12 Exercícios para fixar

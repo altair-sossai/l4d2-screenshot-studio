@@ -152,7 +152,7 @@ RemoveLooseItems();
 | `sv_infinite_ammo 1` | Arma sempre carregada, sem animação de recarga |
 | `RemoveLooseItems()` | Remove armas e itens soltos no mapa (kit médico no chão, armas na mesa...) |
 
-`RemoveLooseItems` percorre todas as entidades e remove as de classe `weapon_*` ou `upgrade_*` **sem dono** (`m_hOwnerEntity`). Armas na mão de alguém ficam.
+`RemoveLooseItems` percorre todas as entidades e remove as de classe `weapon_*` ou `upgrade_*` **sem dono** (`m_hOwnerEntity`). Armas na mão de alguém ficam. Também remove os objetos de cenário que dá para carregar (galão, botijão, cilindro de oxigênio, caixa de fogos), que são `prop_physics` e por isso não começam com `weapon_` (função `IsCarryable`, que olha o nome do modelo).
 
 Depois, ajusta cvars do cliente com `SetLocalCvar` (explicado no [documento 3](03-comunicacao.md#clientcommand-para-mudar-cvars-do-cliente)):
 
@@ -166,6 +166,7 @@ Depois, ajusta cvars do cliente com `SetLocalCvar` (explicado no [documento 3](0
 | `jpeg_quality` | `95` | Qualidade do print |
 | `mat_motion_blur_enabled` | `0` | Sem borrão de movimento |
 | `engine_no_focus_sleep` | `0` | O jogo continua rodando rápido mesmo sem foco na janela |
+| `cl_viewmodelfovsurvivor` | `50` | Campo de visão da arma em primeira pessoa. Fixo para todas as fotos terem a arma do mesmo tamanho (veja o [diário](10-problemas-e-solucoes.md#braços-esticados-no-taco-de-críquete)) |
 
 Por fim, **expulsa os bots sobreviventes extras**, deixando só um (o "ator"), que é estacionado longe da câmera (cena `park`). Bots andando pelo cenário estragariam as fotos.
 
