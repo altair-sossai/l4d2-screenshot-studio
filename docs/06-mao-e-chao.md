@@ -17,7 +17,7 @@ O estúdio usa o mesmo esquema do servidor L4D2 Zone:
   ```text
   materials/models/l4d2br/weapons/smg_<id da workshop>/...
   ```
-- O `weapon_skins.cfg` diz, para cada skin, a arma e o número da família.
+- O `weapon_skins.cfg` diz, para cada skin, a arma e o número da família. Nas armas de fogo, as primeiras famílias são as do modelo original do jogo (`stock_skins`), e as skins vêm depois delas; veja os [conceitos básicos](01-conceitos-basicos.md#famílias-de-skin-m_nskin).
 
 Mostrar uma skin é, portanto, **trocar o modelo pelo combinado e escolher a família** (`m_nSkin`). Nenhum arquivo é trocado em disco durante as fotos.
 

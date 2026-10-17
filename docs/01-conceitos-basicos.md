@@ -49,6 +49,8 @@ Um modelo pode ter várias **famílias de textura** (`$texturegroup` no código 
 
 O servidor L4D2 Zone junta **todas as skins de uma arma num único modelo combinado**: o modelo `models/l4d2br/weapons/smg/v.mdl` tem uma família para cada skin de SMG. Para mostrar a skin número 7, basta usar o modelo combinado e colocar `m_nSkin = 7`. O estúdio usa exatamente o mesmo mecanismo, lendo a lista de skins do arquivo `weapon_skins.cfg` do servidor.
 
+Nas seis armas de fogo (SMG, SMG com silenciador, MP5, as duas escopetas e a Magnum), as **primeiras famílias** do modelo combinado são as do modelo **original** do jogo (quantas são está em `stock_skins`, no `weapon_skins.cfg`: 2 na SMG, na SMG com silenciador e nas escopetas, 1 na MP5 e 3 na Magnum), e as skins vêm depois delas. É isso que deixa o servidor usar o modelo combinado até em quem está sem skin. Para o estúdio não muda nada: o número da família de cada skin já vem certo no campo `"skin"` do cfg, e o `stock_skins` é ignorado. Nas armas brancas, todas as famílias são skins.
+
 > Consequência importante para o enquadramento: como **todas as skins de uma arma compartilham a mesma malha**, elas têm o mesmo tamanho e formato. Por isso o enquadramento é calibrado **uma vez por arma**, não uma vez por skin. Veja o [documento 8](08-enquadramento-automatico.md).
 
 ---
