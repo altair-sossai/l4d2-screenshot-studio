@@ -24,7 +24,9 @@ Todas as posições, ângulos e ajustes ficam em [`config/skin_shots.cfg`](../co
     "c5m1_waterfront"                                          ← nome do mapa
     {
         "hand"   { ... }                                       ← uma seção por cena
-        "ground" { ... }
+        "ground"  { ... }
+        "ground2" { ... }
+        "ground3" { ... }
         "third"  { ... }
         "third2" { ... }
         "park"   { ... }

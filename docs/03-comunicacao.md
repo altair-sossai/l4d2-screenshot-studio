@@ -70,16 +70,16 @@ void Log(const char[] format, any ...)
 }
 ```
 
-Os scripts **esperam por linhas específicas do log** para saber que algo terminou, por exemplo `snap saved ...` depois de um print, `done` no fim de uma sequência, `loaded 5 scenes ...` depois que um mapa carregou.
+Os scripts **esperam por linhas específicas do log** para saber que algo terminou, por exemplo `snap saved ...` depois de um print, `done` no fim de uma sequência, `loaded 7 scenes ...` depois que um mapa carregou.
 
 Exemplo de log de uma sequência:
 
 ```text
-15:34:45 run all: 784 shots
-15:34:47 1/784 screenshots/skinshots/hand/abyss-uzi.jpg
-15:34:49 2/784 screenshots/skinshots/hand/akatsuki-uzi.jpg
+15:34:45 run all: 1176 shots
+15:34:47 1/1176 screenshots/skinshots/hand/abyss-uzi.jpg
+15:34:49 2/1176 screenshots/skinshots/hand/akatsuki-uzi.jpg
 ...
-16:12:03 done
+hh:mm:ss done
 ```
 
 ---
@@ -127,7 +127,7 @@ Os scripts precisam **esperar** o jogo: o mapa carregar, a cena assentar, o prin
 
 ```bash
 # espera o mapa carregar (o plugin escreve isso no OnMapStart)
-until tail -n +$n skin_shots.log | grep -q "loaded 5 scenes"; do sleep 2; done
+until tail -n +$n skin_shots.log | grep -q "loaded 7 scenes"; do sleep 2; done
 ```
 
 ```powershell
