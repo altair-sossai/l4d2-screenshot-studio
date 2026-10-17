@@ -379,6 +379,12 @@ Action Command_Run(int args)
 		return Plugin_Handled;
 	}
 
+	if (g_iJob >= 0 && g_iJob < g_hJobs.Length)
+	{
+		Log("busy: a sequence is running (%d/%d), wait for it or use sm_shots_stop", g_iJob + 1, g_hJobs.Length);
+		return Plugin_Handled;
+	}
+
 	LoadSkins();
 	LoadScenes();
 

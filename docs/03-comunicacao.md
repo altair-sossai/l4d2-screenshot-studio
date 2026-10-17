@@ -43,6 +43,22 @@ A cada execução:
 
 Isso significa que qualquer comando de servidor funciona pela fila, não só os do plugin: `map c5m1_waterfront`, `quit`, `condump`, `sm plugins reload l4d2_skin_shots`...
 
+### Limite de tamanho da linha
+
+O plugin lê cada linha num buffer de 512 caracteres (`char line[512]`). Uma linha maior é **cortada em pedaços**, e cada pedaço vira um comando separado (e quebrado). Isso aconteceu ao mandar `sm_shots_run all` com 99 skins de uma vez: nada rodou. Para listas grandes, mande em lotes (12 skins por linha cabem com folga).
+
+### Esperando um comando terminar
+
+Para esperar uma linha do log (por exemplo o `done` de uma sequência), comece a ler na **primeira linha nova**, não na última antiga:
+
+```bash
+n=$(($(wc -l < skin_shots.log) + 1))
+.\scripts\send.ps1 sm_shots_run all ...
+until tail -n +$n skin_shots.log | grep -q " done$"; do sleep 5; done
+```
+
+Sem o `+ 1`, o `tail` inclui a última linha que já existia, que pode ser o `done` da sequência anterior: o script acha que terminou na hora e manda a próxima por cima (veja o [diário](10-problemas-e-solucoes.md#sequências-sobrepostas-e-fotos-vazias)). Por segurança, o `sm_shots_run` também recusa começar enquanto outra sequência roda e escreve `busy` no log.
+
 ### Por que ler-e-apagar é seguro o bastante
 
 Existe uma janela pequena em que o script pode acrescentar uma linha entre o plugin ler e apagar o arquivo, e essa linha se perderia. Na prática os scripts esperam o resultado de um comando antes de mandar o próximo, então isso não acontece. Para uma ferramenta local isso é suficiente; não vale a complexidade de um protocolo com confirmação.

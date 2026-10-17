@@ -167,11 +167,13 @@ Na pasta [`tools/`](../tools) ficam scripts pequenos usados durante o desenvolvi
 | `sheet.ps1` | Junta vários prints numa folha, com o nome de cada um | Comparar o mesmo tipo de foto para as 14 armas lado a lado |
 | `diffimg.ps1` | Gera uma imagem mostrando em branco os pixels que mudaram entre dois prints | Descobrir que o **rosto** e a **sombra** entravam na medição da calibração |
 | `crop.ps1` | Recorta a mesma região de vários prints e põe lado a lado | Ver de perto o rosto deformado em dois prints seguidos |
+| `soften-materials.js` | Varre os `.vmt` das skins e limita o reflexo do ambiente a 10% e o brilho especular a 10 onde a textura não tem máscara. `dry` só lista, `apply` grava | As cores das 98 skins que saíam apagadas (veja o [diário](10-problemas-e-solucoes.md#as-cores-das-skins-apareciam-apagadas)) |
 
 ```powershell
 .\tools\sheet.ps1 -Folder 'E:\L4D2-Studio\left4dead2\screenshots\skinshots\test' -Pattern 'check_*.jpg' -Out folha.jpg -Cols 4
 .\tools\diffimg.ps1 -A com_arma.jpg -B sem_arma.jpg -Out diferenca.jpg
 .\tools\crop.ps1 -Files a.jpg,b.jpg -X 650 -Y 0 -W 450 -H 400 -Out rostos.jpg
+node tools\soften-materials.js <pasta materials/models/l4d2br/weapons> <weapon_skins.cfg> dry
 ```
 
 ---

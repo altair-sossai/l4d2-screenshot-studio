@@ -57,7 +57,8 @@ l4d2-screenshot-studio/
 ├── tools/
 │   ├── sheet.ps1                  ← junta vários prints numa folha (para revisar rápido)
 │   ├── diffimg.ps1                ← mostra a diferença entre dois prints (diagnóstico)
-│   └── crop.ps1                   ← recorta a mesma região de vários prints (diagnóstico)
+│   ├── crop.ps1                   ← recorta a mesma região de vários prints (diagnóstico)
+│   └── soften-materials.js        ← reduz reflexo e brilho dos materiais que "lavam" a cor das skins
 └── docs/                          ← a documentação para estudo (leia na ordem)
 ```
 
@@ -158,7 +159,7 @@ Todos são enviados com `.\scripts\send.ps1 <comando>`.
 
 | Comando | O que faz |
 |---|---|
-| `sm_shots_run <cena\|all> [skins ou armas...]` | Tira as fotos. A cena pode ser uma lista separada por vírgula (`ground,ground2`). Sem filtro, faz todas as skins; o filtro aceita ids de skin e classes de arma (`weapon_smg`). Faz todas as skins de uma cena antes de passar para a próxima |
+| `sm_shots_run <cena\|all> [skins ou armas...]` | Tira as fotos. A cena pode ser uma lista separada por vírgula (`ground,ground2`). Sem filtro, faz todas as skins; o filtro aceita ids de skin e classes de arma (`weapon_smg`). Faz todas as skins de uma cena antes de passar para a próxima. Recusa (`busy` no log) se outra sequência estiver rodando. A linha inteira tem limite de 512 caracteres: para muitas skins, mande em lotes de até 12 |
 | `sm_shots_show <skin> <cena>` | Monta uma cena sem fotografar (para conferir na tela) |
 | `sm_shots_snap <nome>` | Tira um print avulso para `screenshots/skinshots/test/<nome>.jpg` |
 | `sm_shots_frame <pitch> <yaw> <fov>` | Gira a câmera e muda o zoom, sem mover |

@@ -216,6 +216,33 @@ O problema mais demorado do projeto. Vale ler com calma, porque mostra como isol
 
 ---
 
+## As cores das skins apareciam apagadas
+
+- **Sintoma:** várias skins (a Magnum Exodus, a Asiimov Chrome, a Darkdread e muitas outras) apareciam nas fotos quase prateadas ou esbranquiçadas, bem diferentes da imagem da Workshop.
+- **Investigação:**
+  1. A textura da Exodus no servidor era idêntica byte a byte à do addon original da Workshop. Não era erro na conversão.
+  2. Decodificando a textura (DXT5) com um script, o canal alfa estava em 100% na imagem inteira.
+  3. No material, `$basealphaenvmapmask 1` usa esse alfa como máscara do **reflexo do ambiente** (`$envmap`). Alfa 100% em tudo = a arma inteira é um espelho do céu do mapa.
+  4. Uma varredura em todas as 196 skins achou o mesmo padrão em 99 delas, em duas formas: reflexo do ambiente sem nenhuma máscara (comum nas escopetas e nas MAC-10, que herdaram o material da arma cromada original) e **brilho especular** (`$phongboost` de 45 a 200) em texturas sem máscara de brilho.
+- **Causa:** os autores copiam o material da arma original do jogo, que foi feito para uma textura com máscaras cuidadosas no canal alfa. A textura nova vem sem essas máscaras, e o reflexo e o brilho que eram sutis passam a cobrir a arma toda e "lavam" a pintura.
+- **Solução:** [`tools/soften-materials.js`](../tools/soften-materials.js) aplica uma regra em todos os materiais com textura própria:
+  - reflexo do ambiente no máximo 10% (`$envmaptint "[0.1 0.1 0.1]"`, ou o tint do autor reduzido na mesma proporção quando era maior que 20%);
+  - brilho especular no máximo 10 onde a textura não tem máscara que o segure (brilho efetivo = `$phongboost` × alfa médio ≥ 20).
+  - Ficam de fora as skins holográficas (o reflexo colorido é o efeito delas) e a Puro, em que o brilho branco é o visual que o autor mostra na Workshop.
+- **Como o valor foi escolhido:** 20% e 10% foram testados lado a lado com a imagem da Workshop; 10% ficou mais fiel. A mudança é só no `.vmt` (algumas dezenas de bytes): as texturas, que são o peso do download, não mudam.
+- **Lição:** quando uma imagem "não bate" com a referência, confira primeiro se o arquivo é o mesmo, depois **como** ele é desenhado. Aqui a textura estava certa; o problema era a receita de desenho (o material).
+
+## Sequências sobrepostas e fotos vazias
+
+- **Sintoma:** ao refazer as fotos de 99 skins, várias fotos saíram faltando ("missing screenshot") e outras mostravam só a parede, sem o sobrevivente.
+- **Causa, em duas partes:**
+  1. O comando com as 99 skins passou de 512 caracteres, o tamanho da linha que o plugin lê da fila. Ele foi cortado em pedaços e nada rodou.
+  2. Ao mandar em lotes, o script esperava o `done` lendo o log **a partir da última linha antiga**, que já era o `done` do lote anterior. Os lotes foram disparados um por cima do outro, e cada `sm_shots_run` novo deixava os timers do anterior rodando. Várias cadeias de timers fotografavam ao mesmo tempo, apagavam o print uma da outra e tiravam fotos antes de a cena estar montada.
+- **Solução:** o `sm_shots_run` agora recusa uma sequência nova enquanto outra está rodando (`busy` no log). Os lotes têm no máximo 12 skins e a espera lê o log a partir da **primeira linha nova** (`wc -l` + 1).
+- **Lição:** conferir só a data dos arquivos não basta; as fotos vazias tinham data nova. Olhar as imagens (folha de revisão) pegou o que a checagem automática deixou passar.
+
+---
+
 ## Ferramentas
 
 ### `forward` não compila em SourcePawn
