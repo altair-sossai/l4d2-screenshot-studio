@@ -140,7 +140,7 @@ novo pitch = -atan2(d.z, √(d.x² + d.y²))       ← negativo porque pitch pos
 
 ### O zoom
 
-Queremos que a arma ocupe uma fração `fill` do quadro (0,6 da largura ou 0,65 da altura no close; 0,3 no plano aberto). Se agora ela ocupa `w/W` da largura, o fator de correção é:
+Queremos que a arma ocupe uma fração `fill` do quadro (0,88 nas cenas do chão, para a arma ficar grande com bordas estreitas; 0,6 da largura ou 0,65 da altura no close da terceira pessoa; 0,3 no plano aberto). Se agora ela ocupa `w/W` da largura, o fator de correção é:
 
 ```text
 fator = max( (largura da arma / W) / fillLargura ,  (altura da arma / H) / fillAltura )
@@ -157,7 +157,7 @@ O FOV final é limitado entre 4 e 60 graus, para nunca divergir para valores abs
 
 ## 8.5 Repetir até convergir
 
-Uma correção só não basta: o FOV do jogo é inteiro (arredondado), a conversão de pixels é aproximada e a arma não é um ponto. O script repete **medir → corrigir** 4 vezes (`Passes`). Cada repetição parte do resultado anterior, com a arma já maior e mais centralizada, então a medida fica mais precisa e o erro diminui.
+O FOV novo é arredondado **para cima** (o lado mais aberto): o FOV do jogo é inteiro, e nos zooms fechados (FOV 8 a 15) um grau a menos aumenta a arma em 7 a 12%, o que com `fill` 0,88 poderia cortá-la. Uma correção só não basta: o FOV do jogo é inteiro, a conversão de pixels é aproximada e a arma não é um ponto. O script repete **medir → corrigir** 4 vezes (`Passes`). Cada repetição parte do resultado anterior, com a arma já maior e mais centralizada, então a medida fica mais precisa e o erro diminui.
 
 ```text
 passo 1:  FOV 34, arma pequena no canto       → aponta e aproxima

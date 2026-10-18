@@ -9,7 +9,7 @@ Todas as posições, ângulos e ajustes ficam em [`config/skin_shots.cfg`](../co
 ```text
 "SkinShots"
 {
-    "settle"        "1.6"                                      ← segundos de espera antes de cada print
+    "settle"        "1.6"                                      ← segundos de espera antes de cada print (uma cena pode ter o próprio, a "hand" usa 4.0)
     "actor_model"   "models/survivors/survivor_mechanic.mdl"   ← sobrevivente da terceira pessoa (Ellis)
 
     "animations"                                               ← pose do sobrevivente para cada arma

@@ -121,7 +121,7 @@ Para cada arma, faz `PrecacheModel` dos dois modelos combinados e guarda o índi
 
 Lê o `configs/skin_shots.cfg`:
 
-- valores globais: `settle` (tempo de assentamento) e `actor_model` (modelo do sobrevivente da terceira pessoa);
+- valores globais: `settle` (tempo de assentamento) e `actor_model` (modelo do sobrevivente da terceira pessoa); uma cena pode ter o próprio `settle` (a `hand` usa 4 s);
 - a seção `animations` (arma → animação);
 - a seção com o **nome do mapa atual** (`GetCurrentMap`), com uma subseção por cena;
 - dentro de cada cena, a subseção opcional `framing` (enquadramento calibrado por arma).

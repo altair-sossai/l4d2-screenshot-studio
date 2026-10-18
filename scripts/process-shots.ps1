@@ -2,14 +2,14 @@ param(
     [string]$Studio = 'E:\L4D2-Studio',
     [string]$Output = (Join-Path $PSScriptRoot '..\output'),
     [string]$FFmpeg = 'ffmpeg',
-    [int]$Width = 1280,
-    [int]$Height = 720,
+    [int]$Width = 0,
+    [int]$Height = 0,
     [int]$CardSize = 540,
     [int]$ThumbWidth = 320,
     [int]$ThumbHeight = 180,
-    [int]$AvifCrf = 20,
+    [int]$AvifCrf = 14,
     [int]$ThumbAvifCrf = 24,
-    [int]$WebpQuality = 85,
+    [int]$WebpQuality = 90,
     [int]$ThumbWebpQuality = 80,
     [int]$Parallel = 6,
     [string[]]$Skins = @(),
@@ -45,9 +45,10 @@ $jobs = foreach ($skin in $found) {
         $w = $image.Width; $h = $image.Height
         $image.Dispose()
 
-        $ratio = $Width / $Height
+        $ratio = 16 / 9
         $cropWidth = [Math]::Min($w, [int]($h * $ratio))
         $cropHeight = [int]($cropWidth / $ratio)
+        $fullScale = if ($Width -gt 0 -and $Height -gt 0) { ",scale=${Width}:${Height}:flags=lanczos" } else { '' }
         $side = [Math]::Min($w, $h)
         $key = if ($shot -eq 'hand' -and "$($weapons[$skin])" -like 'weapon_melee_*') { 'handMelee' } else { $shot }
         $center = if ($cardCenter.Contains($key)) { $cardCenter[$key] } else { 0.5 }
@@ -55,7 +56,7 @@ $jobs = foreach ($skin in $found) {
         [pscustomobject]@{
             File = $file
             Base = Join-Path $folder $shots[$shot]
-            Full = "crop=${cropWidth}:${cropHeight}:$([int](($w - $cropWidth) / 2)):$([int](($h - $cropHeight) / 2)),scale=${Width}:${Height}:flags=lanczos"
+            Full = "crop=${cropWidth}:${cropHeight}:$([int](($w - $cropWidth) / 2)):$([int](($h - $cropHeight) / 2))$fullScale"
             Card = if ($shot -in $cardShots) { "crop=${side}:${side}:$([int][Math]::Min($w - $side, [Math]::Max(0, $w * $center - $side / 2))):$([int](($h - $side) / 2)),scale=${CardSize}:${CardSize}:flags=lanczos" } else { $null }
             Thumb = "crop=${cropWidth}:${cropHeight}:$([int](($w - $cropWidth) / 2)):$([int](($h - $cropHeight) / 2)),scale=${ThumbWidth}:${ThumbHeight}:flags=lanczos"
         }
@@ -112,5 +113,5 @@ $sheet.Save([System.IO.Path]::GetFullPath($ContactSheet), [System.Drawing.Imagin
 $graphics.Dispose(); $sheet.Dispose()
 
 "$($jobs.Count) photos for $($found.Count) skins in $Output"
-"Each photo: $Width x $Height, a $ThumbWidth x $ThumbHeight thumbnail and, for photos 1, 5 and 6, a $CardSize px square card image; AVIF (crf $AvifCrf / $ThumbAvifCrf) and WebP (quality $WebpQuality / $ThumbWebpQuality)"
+"Each photo: $(if ($Width -gt 0) { "$Width x $Height" } else { 'the screenshot resolution' }), a $ThumbWidth x $ThumbHeight thumbnail and, for photos 1, 5 and 6, a $CardSize px square card image; AVIF (crf $AvifCrf / $ThumbAvifCrf) and WebP (quality $WebpQuality / $ThumbWebpQuality)"
 "Contact sheet: $ContactSheet"

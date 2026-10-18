@@ -152,7 +152,7 @@ for ($i = 0; $i -lt 40 -and -not (Test-Path $file); $i++) { Start-Sleep -Millise
 if (-not (Test-Path $file)) { throw "screenshot $name not saved" }
 ```
 
-O único tempo fixo que sobra é o **tempo de assentamento** da cena (`settle`, 1,6 s no `skin_shots.cfg`): depois de trocar a arma ou o sobrevivente, o jogo precisa de alguns frames para carregar texturas e estabilizar a animação antes do print.
+O único tempo fixo que sobra é o **tempo de assentamento** da cena (`settle`, 1,6 s no `skin_shots.cfg`, e 4 s na cena `hand`): depois de trocar a arma ou o sobrevivente, o jogo precisa de alguns frames para carregar texturas e estabilizar a animação antes do print. Na primeira pessoa a espera é maior porque a animação de sacar algumas armas brancas (taco de críquete, taco de golfe) mexe e inclina a câmera, e com 1,6 s o print pegava a câmera torta.
 
 ---
 

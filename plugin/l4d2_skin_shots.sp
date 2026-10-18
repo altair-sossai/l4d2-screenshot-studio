@@ -45,6 +45,7 @@ enum struct Scene
 	bool hasMeleeAngles;
 	bool viewModel;
 	int fov;
+	float settle;
 	char type[16];
 }
 
@@ -325,6 +326,7 @@ void LoadScenes()
 			kv.GetVector("melee_target_angles", scene.meleeAngles);
 			scene.viewModel = kv.GetNum("viewmodel", 0) == 1;
 			scene.fov = kv.GetNum("fov", 0);
+			scene.settle = kv.GetFloat("settle", 0.0);
 			kv.GetString("type", scene.type, sizeof(scene.type), name);
 			g_hScenes.SetArray(name, scene, sizeof(scene));
 
@@ -608,7 +610,10 @@ Action Timer_NextJob(Handle timer)
 	}
 
 	strcopy(g_sCurrentShot, sizeof(g_sCurrentShot), parts[0]);
-	CreateTimer(g_fSettle, Timer_Shoot, _, TIMER_FLAG_NO_MAPCHANGE);
+
+	Scene scene;
+	g_hScenes.GetArray(parts[0], scene, sizeof(scene));
+	CreateTimer(scene.settle > 0.0 ? scene.settle : g_fSettle, Timer_Shoot, _, TIMER_FLAG_NO_MAPCHANGE);
 	return Plugin_Stop;
 }
 

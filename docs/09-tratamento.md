@@ -1,6 +1,6 @@
 # 9. Tratamento das imagens
 
-Os prints saem do jogo em 1920×1080, JPEG com qualidade 95, em:
+Os prints saem do jogo na resolução da janela do estúdio (1600×900, padrão do `run-studio.ps1`), JPEG com qualidade 95, em:
 
 ```text
 left4dead2/screenshots/skinshots/
@@ -31,7 +31,7 @@ E cada foto vira até três arquivos, cada um para um uso no site:
 
 | Arquivo | Tamanho | Para quê | Peso médio (AVIF) |
 |---|---|---|---|
-| `N.avif` / `N.webp` | 1280×720 | A imagem grande da janela de detalhes e o zoom | ~42 KB |
+| `N.avif` / `N.webp` | a do print (1600×900), sem reduzir | A imagem grande da janela de detalhes e o zoom | ~75 KB |
 | `N-thumb.avif` / `N-thumb.webp` | 320×180 | As miniaturas embaixo da imagem grande | ~6 KB |
 | `N-card.avif` / `N-card.webp` | 540×540 | O card da loja, quando o mouse passa por cima (só fotos 1, 5 e 6) | ~15 KB |
 
@@ -123,30 +123,43 @@ Com 6, a perda é desprezível e fica 3× mais rápido. Mesmo assim são 1.176 f
 
 ---
 
+### A imagem grande em resolução cheia (18/10/2026)
+
+No zoom do site a imagem grande de 1280×720 com crf 20 pixelava. Comparando um recorte ampliado do cabo da Magnum no chão:
+
+| Versão | Tamanho |
+|---|---|
+| 1280×720, AVIF crf 20 (antes) | 21 KB, borrada no zoom |
+| 1600×900 (sem reduzir), AVIF crf 14 | 35 KB, praticamente igual ao print |
+| 1600×900, AVIF crf 10 | 45 KB, sem ganho visível sobre o crf 14 |
+
+A imagem grande passou a sair **na resolução do print, sem reduzir, com AVIF crf 14 e WebP 90**. Na média das 1.176 fotos ficou em ~75 KB. O que ainda aparece no zoom mais fechado é a própria textura da skin (no máximo 1024 px), que nenhuma compressão melhora.
+
 ## 9.3 O comando do `ffmpeg` por dentro
 
 Para cada foto o script monta um *filter graph* assim (exemplo da foto 1, que tem as três versões):
 
 ```text
 [0]split=6[s0][s1][s2][s3][s4][s5];
-[s0]crop=1920:1080:0:0,scale=1280:720:flags=lanczos[a0];      ← grande, AVIF
-[s1]crop=1920:1080:0:0,scale=1280:720:flags=lanczos[w0];      ← grande, WebP
-[s2]crop=1920:1080:0:0,scale=320:180:flags=lanczos[a1];       ← miniatura, AVIF
-[s3]crop=1920:1080:0:0,scale=320:180:flags=lanczos[w1];       ← miniatura, WebP
-[s4]crop=1080:1080:612:0,scale=540:540:flags=lanczos[a2];     ← card, AVIF
-[s5]crop=1080:1080:612:0,scale=540:540:flags=lanczos[w2]      ← card, WebP
+[s0]crop=1600:900:0:0[a0];                                    ← grande, AVIF (resolução do print)
+[s1]crop=1600:900:0:0[w0];                                    ← grande, WebP
+[s2]crop=1600:900:0:0,scale=320:180:flags=lanczos[a1];        ← miniatura, AVIF
+[s3]crop=1600:900:0:0,scale=320:180:flags=lanczos[w1];        ← miniatura, WebP
+[s4]crop=900:900:510:0,scale=540:540:flags=lanczos[a2];       ← card, AVIF
+[s5]crop=900:900:510:0,scale=540:540:flags=lanczos[w2]        ← card, WebP
 ```
 
 E cada saída é mapeada para um arquivo com seu codificador:
 
 ```text
--map [a0] -c:v libaom-av1 -still-picture 1 -cpu-used 6 -pix_fmt yuv420p -crf 20 1.avif
--map [w0] -c:v libwebp -compression_level 6 -preset picture -quality 85     1.webp
+-map [a0] -c:v libaom-av1 -still-picture 1 -cpu-used 6 -pix_fmt yuv420p -crf 14 1.avif
+-map [w0] -c:v libwebp -compression_level 6 -preset picture -quality 90     1.webp
 ...
 ```
 
 - `split=6` duplica a imagem decodificada em 6 cópias.
-- `crop=L:A:X:Y` recorta (largura, altura, posição). `612` é o X do recorte quadrado com centro em 0,6: `1920 × 0,6 − 1080 / 2 = 612`.
+- `crop=L:A:X:Y` recorta (largura, altura, posição). `510` é o X do recorte quadrado com centro em 0,6: `1600 × 0,6 − 900 / 2 = 510`.
+- A imagem grande não passa por `scale`: ela sai na resolução do print (`-Width`/`-Height` do `process-shots.ps1` ainda reduzem, se precisar).
 - `-still-picture 1` diz ao AVIF que é uma imagem, não um vídeo.
 - `-compression_level 6` é o esforço máximo do WebP (mais lento, arquivo menor, mesma qualidade).
 

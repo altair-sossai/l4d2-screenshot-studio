@@ -87,6 +87,18 @@ Cada problema segue o formato:
 - **Sintoma:** depois do comando `map` (recarregar o mapa com o jogo aberto), as fotos de primeira pessoa saíam sem braço nenhum, mesmo depois da cena de abertura.
 - **Solução:** para tirar fotos de primeira pessoa, fechar e abrir o jogo de novo (`quit` e `run-studio.ps1`) em vez de recarregar o mapa. Numa sessão nova, depois da cena de abertura, os braços aparecem.
 
+### A câmera saía torta na primeira pessoa de algumas armas brancas
+
+- **Sintoma:** na sequência completa, as fotos de mão do taco de críquete e do taco de golfe saíam com o horizonte inclinado, às vezes sem a arma na tela. Com `sm_shots_show` ou numa sequência curta, saíam retas.
+- **Causa:** a animação de sacar essas armas mexe e gira a câmera. Na sequência, cada arma entra logo depois de outra arma branca (o taco de críquete depois do taco de beisebol, o de golfe depois da guitarra), e com 1,6 s de espera o print pegava a animação no meio. Reproduzido duas vezes seguidas com a mesma ordem.
+- **Solução:** `settle` por cena no `skin_shots.cfg`; a `hand` espera 4 s, e as outras cenas continuam com 1,6 s.
+
+### Os braços sumiram depois de mudar a resolução pelo menu
+
+- **Sintoma:** depois de trocar a resolução do estúdio pelo menu do jogo, as fotos de mão saíam sem braço.
+- **Causa:** ao salvar a resolução, o jogo regravou o `cfg\video.txt` com `"setting.gpu_level" "3"` (detalhe de shader máximo), o mesmo problema da seção [Os braços sumiram da primeira pessoa](#os-braços-sumiram-da-primeira-pessoa).
+- **Solução:** com o jogo fechado, voltar para `"2"` no `video.txt`. O `install-studio.ps1` já faz isso, mas só quando roda.
+
 ### A escopeta saía fora do quadro no chão
 
 - **Sintoma:** com câmera e zoom fixos, a escopeta (comprida) encostava na borda e ficava torta no quadro, enquanto a Magnum ficava pequena no meio.

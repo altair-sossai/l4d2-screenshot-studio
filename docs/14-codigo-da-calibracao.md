@@ -253,7 +253,7 @@ function Solve([double]$pitch, [double]$yaw, [double]$fov, [int[]]$box)
     $newPitch = -[Math]::Atan2($dz, [Math]::Sqrt($dx * $dx + $dy * $dy)) / $rad
 
     $fill = [Math]::Max(($box[2] - $box[0]) / $w / $fillWidth, ($box[3] - $box[1]) / $h / $fillHeight)
-    $newFov = [Math]::Round(2 * [Math]::Atan([Math]::Tan($fov * $rad / 2) * $fill) / $rad)
+    $newFov = [Math]::Ceiling(2 * [Math]::Atan([Math]::Tan($fov * $rad / 2) * $fill) / $rad - 0.05)
 
     [Math]::Round($newPitch, 2), [Math]::Round(($newYaw + 360) % 360, 2), [Math]::Min(60, [Math]::Max(4, $newFov))
 }

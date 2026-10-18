@@ -1,8 +1,8 @@
 param(
     [string]$Studio = 'E:\L4D2-Studio',
     [string]$Map = 'c5m1_waterfront',
-    [int]$Width = 1920,
-    [int]$Height = 1080
+    [int]$Width = 1600,
+    [int]$Height = 900
 )
 $ErrorActionPreference = 'Stop'
 

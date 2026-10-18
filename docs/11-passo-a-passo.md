@@ -150,7 +150,7 @@ Rode o script de novo (com o jogo fechado) sempre que mudar o `weapon_skins.cfg`
 .\scripts\run-studio.ps1
 ```
 
-Com a Steam aberta, o jogo abre em janela sem borda, em 1920×1080 (mude com `-Width` e `-Height`; mantenha 16:9 e, se mudar, rode a calibração de novo), já carregando The Parish (`c5m1_waterfront`, o único mapa com cenas no `skin_shots.cfg`). O script não espera o jogo: ele só o abre. Espere:
+Com a Steam aberta, o jogo abre em janela sem borda, em 1600×900 (mude com `-Width` e `-Height`; mantenha 16:9 e, se mudar, rode a calibração de novo; ao mudar a resolução pelo menu do jogo, confira se o `video.txt` não voltou para `"setting.gpu_level" "3"`, que esconde os braços), já carregando The Parish (`c5m1_waterfront`, o único mapa com cenas no `skin_shots.cfg`). O script não espera o jogo: ele só o abre. Espere:
 
 1. o mapa carregar;
 2. **a cutscene de abertura terminar** (o barco vai embora e a visão fica normal, uns 2 a 3 minutos).
@@ -222,7 +222,7 @@ Skins novas de armas que já existem **não** precisam de calibração.
 .\scripts\send.ps1 sm_shots_run all
 ```
 
-São seis fotos por skin (196 skins × 6 cenas = 1.176 fotos no L4D2 Zone). Cada foto leva uns 2 a 3 segundos (o `settle` de 1,6 s mais a gravação), então conte com perto de uma hora para esse volume. Antes de cada print o plugin apaga os `.jpg` soltos em `E:\L4D2-Studio\left4dead2\screenshots\` (os da subpasta `skinshots` ficam). Acompanhe pelo log:
+São seis fotos por skin (196 skins × 6 cenas = 1.176 fotos no L4D2 Zone). Cada foto leva uns 2 a 3 segundos (o `settle` de 1,6 s mais a gravação; ~4,6 s na primeira pessoa, que espera 4 s), então conte com perto de uma hora para esse volume. Antes de cada print o plugin apaga os `.jpg` soltos em `E:\L4D2-Studio\left4dead2\screenshots\` (os da subpasta `skinshots` ficam). Acompanhe pelo log:
 
 ```powershell
 Get-Content 'E:\L4D2-Studio\left4dead2\addons\sourcemod\data\skin_shots.log' -Tail 1 -Wait
@@ -263,7 +263,7 @@ Para fechar o jogo sozinho no fim (bom para rodar à noite):
 .\scripts\process-shots.ps1
 ```
 
-Gera, para cada skin, as seis fotos em AVIF e WebP em `output\<skin>\` (grande 1280×720, miniatura 320×180 e, para as fotos 1, 5 e 6, o quadrado de 540 px do card) e a folha de revisão `output\contact-sheet.jpg`. Precisa do `ffmpeg` com `libaom-av1` e `libwebp` no PATH (`winget install Gyan.FFmpeg`, ou `-FFmpeg <caminho>`) e leva ~6 minutos para 196 skins. Lê os prints de `<pasta do estúdio>\left4dead2\screenshots\skinshots` (passe `-Studio` se a cópia não estiver em `E:\L4D2-Studio`) e não precisa do jogo aberto. Outros parâmetros: `-Output` e `-ContactSheet` (destino), `-Parallel` (fotos codificadas ao mesmo tempo, padrão 6) e os tamanhos e qualidades descritos no [documento 9](09-tratamento.md). Abra a folha e confira linha por linha. Os formatos e a escolha da compressão estão no [documento 9](09-tratamento.md).
+Gera, para cada skin, as seis fotos em AVIF e WebP em `output\<skin>\` (grande na resolução do print, miniatura 320×180 e, para as fotos 1, 5 e 6, o quadrado de 540 px do card) e a folha de revisão `output\contact-sheet.jpg`. Precisa do `ffmpeg` com `libaom-av1` e `libwebp` no PATH (`winget install Gyan.FFmpeg`, ou `-FFmpeg <caminho>`) e leva ~6 minutos para 196 skins. Lê os prints de `<pasta do estúdio>\left4dead2\screenshots\skinshots` (passe `-Studio` se a cópia não estiver em `E:\L4D2-Studio`) e não precisa do jogo aberto. Outros parâmetros: `-Output` e `-ContactSheet` (destino), `-Parallel` (fotos codificadas ao mesmo tempo, padrão 6) e os tamanhos e qualidades descritos no [documento 9](09-tratamento.md). Abra a folha e confira linha por linha. Os formatos e a escolha da compressão estão no [documento 9](09-tratamento.md).
 
 Para refazer só algumas skins: `.\scripts\process-shots.ps1 -Skins volcanic-uzi,old-katana`.
 
